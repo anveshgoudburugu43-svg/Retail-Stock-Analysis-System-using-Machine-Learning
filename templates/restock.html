@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Restock Recommendations</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-900">
+
+  <header class="bg-yellow-500 text-white shadow-lg">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+      <h1 class="text-3xl font-bold">Restock Recommendations</h1>
+      <a href="{% url 'home' %}" class="bg-white text-yellow-600 px-4 py-2 rounded hover:bg-gray-100 shadow">Back to Dashboard</a>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-6 py-6">
+
+    <section class="bg-white rounded-xl shadow-lg overflow-x-auto">
+      <table class="w-full border-collapse">
+        <thead class="bg-gray-200 text-gray-700">
+          <tr>
+            <th class="py-3 px-4 text-left">Symbol</th>
+            <th class="py-3 px-4 text-left">Company</th>
+            <th class="py-3 px-4 text-left">Category</th>
+            <th class="py-3 px-4 text-right">Price</th>
+            <th class="py-3 px-4 text-right">Stock Left</th>
+            <th class="py-3 px-4 text-right">Avg Daily Sales</th>
+            <th class="py-3 px-4 text-right">Recommended Stock</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in page_obj %}
+          <tr class="border-b hover:bg-gradient-to-r hover:from-green-50 hover:to-green-100 transition">
+            <td class="py-3 px-4 font-medium">{{ p.symbol }}</td>
+            <td class="py-3 px-4">{{ p.company }}</td>
+            <td class="py-3 px-4">{{ p.category }}</td>
+            <td class="py-3 px-4 text-right">₹{{ p.price }}</td>
+            <td class="py-3 px-4 text-right {% if p.low_stock %}text-red-600 font-bold{% endif %}">{{ p.stock_left }}</td>
+            <td class="py-3 px-4 text-right">{{ p.avg_daily_sales }}</td>
+            <td class="py-3 px-4 text-right">{{ p.recommended_stock }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="text-center py-4">No data available.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Pagination -->
+    <div class="p-4 flex justify-center gap-2">
+      {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Prev</a>
+      {% endif %}
+
+      <span class="px-3 py-1 bg-gray-100 rounded">{{ page_obj.number }}</span>
+
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Next</a>
+      {% endif %}
+    </div>
+
+  </main>
+
+</body>
+</html>

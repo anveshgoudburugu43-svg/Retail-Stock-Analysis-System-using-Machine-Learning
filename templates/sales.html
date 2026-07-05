@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales Overview</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+
+<header class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg p-4">
+  <div class="max-w-7xl mx-auto flex justify-between items-center">
+    <h1 class="text-2xl font-bold">Sales Overview</h1>
+    <nav>
+      <ul class="flex gap-4">
+        <li><a href="{% url 'home' %}" class="hover:underline">Home</a></li>
+        <li><a href="{% url 'sales_overview' %}" class="hover:underline">Sales</a></li>
+        <li>
+          <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="hover:underline">Logout</button>
+          </form>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto p-6">
+  <table class="w-full border-collapse bg-white rounded shadow">
+    <thead class="bg-gray-200 text-gray-700">
+      <tr>
+        <th class="py-3 px-4 text-left">Symbol</th>
+        <th class="py-3 px-4 text-left">Company</th>
+        <th class="py-3 px-4 text-right">Total Sold</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for sale in sales_data %}
+      <tr class="border-b hover:bg-gray-50">
+        <td class="py-3 px-4">{{ sale.stock__symbol }}</td>
+        <td class="py-3 px-4">{{ sale.stock__company }}</td>
+        <td class="py-3 px-4 text-right">{{ sale.total_sold }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="3" class="text-center py-4">No sales recorded yet.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</main>
+
+</body>
+</html>

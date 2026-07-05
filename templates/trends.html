@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stock Sales Trends</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<h1>Stock Sales Predictions (Next 7 Days)</h1>
+
+{% for stock in predictions %}
+    <h2>{{ stock.stock }}</h2>
+    <canvas id="chart-{{ forloop.counter }}"></canvas>
+    <script>
+        const ctx{{ forloop.counter }} = document.getElementById('chart-{{ forloop.counter }}').getContext('2d');
+        new Chart(ctx{{ forloop.counter }}, {
+            type: 'line',
+            data: {
+                labels: [{% for day in stock.future_sales %}'{{ day.date }}',{% endfor %}],
+                datasets: [{
+                    label: 'Predicted Quantity',
+                    data: [{% for day in stock.future_sales %}{{ day.predicted_quantity }},{% endfor %}],
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true
+            }
+        });
+    </script>
+{% endfor %}
+
+</body>
+</html>

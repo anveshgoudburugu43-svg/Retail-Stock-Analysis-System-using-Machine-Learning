@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retail Stock Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/countup.js/2.2.0/countUp.min.js"></script>
+<script src="https://unpkg.com/scrollreveal"></script>
+</head>
+<body class="bg-gray-50 text-gray-900">
+
+<!-- Header -->
+<header class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg rounded-b-xl">
+  <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+    <h1 class="text-3xl font-bold tracking-wide">Retail Stock Dashboard</h1>
+    <nav>
+      <ul class="flex gap-3 items-center">
+        {% if user.is_authenticated %}
+          <li><a href="{% url 'about' %}" class="hover:underline">Home</a></li>
+          <li><a href="{% url 'sale' %}" class="hover:underline">Sale</a></li>
+          <li>
+            <form method="post" action="{% url 'logout' %}">
+              {% csrf_token %}
+              <button type="submit" class="hover:underline">Logout</button>
+            </form>
+          </li>
+        {% else %}
+          <li><a href="{% url 'signin' %}" class="hover:underline">Sign In</a></li>
+          <li><a href="{% url 'signup' %}" class="hover:underline">Sign Up</a></li>
+        {% endif %}
+        <li>
+          <a href="/admin" class="bg-white text-blue-700 px-4 py-2 rounded-md shadow hover:bg-gray-200 transition">Admin Panel</a>
+        </li>
+        <li>
+          <a href="{% url 'export_sales' %}" class="bg-green-500 text-white px-4 py-2 rounded-md shadow hover:bg-green-600 transition">Download CSV</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+{% if user.is_authenticated %}
+<!-- Hero Banner -->
+<section class="bg-gradient-to-r from-purple-600 to-pink-500 text-white py-12 text-center rounded-b-xl shadow-lg mb-6 animate-pulse">
+  <h2 class="text-4xl font-bold mb-2 tracking-tight">Welcome Back, {{ user.username }}!</h2>
+  <p class="text-lg mb-4">Manage your retail stock efficiently and stay ahead of trends.</p>
+  <a href="{% url 'add_stock' %}" class="bg-green-500 hover:bg-green-600 px-6 py-2 rounded-lg shadow-lg text-white font-semibold transition">+ Add Stock</a>
+</section>
+{% endif %}
+
+<!-- Alerts -->
+<section class="max-w-7xl mx-auto px-6 py-4 grid sm:grid-cols-2 gap-4">
+  {% if festival_info %}
+    <div class="bg-yellow-100 p-4 rounded-xl shadow-lg flex items-center gap-3 text-yellow-800 font-semibold">
+      🎉 {{ festival_info.name }} in <span id="festivalCountdown">{{ festival_info.days_left }}</span> day{% if festival_info.days_left > 1 %}s{% endif %}!
+    </div>
+  {% endif %}
+  {% if season %}
+    <div class="bg-blue-100 p-4 rounded-xl shadow-lg flex items-center gap-3 text-blue-800 font-semibold">
+      🌤️ Current Season: <strong>{{ season }}</strong>
+    </div>
+  {% endif %}
+</section>
+
+<!-- Search & Category Filter -->
+<section class="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row sm:items-center gap-3">
+  <form method="get" class="flex flex-grow gap-2">
+    <input type="text" name="search" value="{{ request.GET.search|default:'' }}" placeholder="Search by symbol or company..."
+      class="flex-grow p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 transition">
+    {% if selected_category %}
+      <input type="hidden" name="category" value="{{ selected_category }}">
+    {% endif %}
+    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 shadow transition">Search</button>
+    <a href="{% url 'home' %}" class="bg-gray-300 px-4 py-2 rounded-lg hover:bg-gray-400 shadow transition">Reset</a>
+  </form>
+</section>
+
+<!-- Categories -->
+<div class="max-w-7xl mx-auto px-6 py-4 flex gap-2 flex-wrap">
+  {% if selected_category == 'All' %}
+    <a href="?category=All" class="bg-blue-600 text-white px-4 py-2 rounded-lg transition">All</a>
+  {% else %}
+    <a href="?category=All" class="bg-gray-200 px-4 py-2 rounded-lg hover:bg-blue-100 transition">All</a>
+  {% endif %}
+  {% for cat in categories %}
+    {% if selected_category == cat.category %}
+      <a href="?category={{ cat.category }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg transition">{{ cat.category }}</a>
+    {% else %}
+      <a href="?category={{ cat.category }}" class="bg-gray-200 px-4 py-2 rounded-lg hover:bg-blue-100 transition">{{ cat.category }}</a>
+    {% endif %}
+  {% endfor %}
+</div>
+
+<!-- Stats Cards -->
+<section class="max-w-7xl mx-auto px-6 py-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  <div class="bg-white p-6 rounded-xl shadow-lg text-center hover:scale-105 transform transition">
+    <h2 class="text-lg font-semibold mb-2">Total Products</h2>
+    <p class="text-3xl font-bold text-indigo-600" id="totalProducts">{{ total_products }}</p>
+  </div>
+  <div class="bg-white p-6 rounded-xl shadow-lg text-center hover:scale-105 transform transition">
+    <h2 class="text-lg font-semibold mb-2">Low Stock Items</h2>
+    <p class="text-3xl font-bold text-red-600" id="lowStockCount">{{ low_stock_count }}</p>
+  </div>
+  <div class="bg-white p-6 rounded-xl shadow-lg text-center hover:scale-105 transform transition">
+    <h2 class="text-lg font-semibold mb-2">Last Updated</h2>
+    <p class="text-xl text-gray-700">{{ last_updated|date:"M d, Y H:i" }}</p>
+  </div>
+</section>
+
+<!-- Restock Recommendations Button -->
+<div class="max-w-7xl mx-auto px-6 py-6 flex justify-center">
+  <a href="{% url 'restock_recommendations' %}" class="bg-yellow-500 text-white px-6 py-3 rounded-lg hover:bg-yellow-600 shadow-lg transition flex items-center gap-3 font-semibold">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v4a1 1 0 001 1h3m10 0h3a1 1 0 001-1V7m-4 0V5a2 2 0 10-4 0v2M4 15h16M4 19h16"/>
+    </svg>
+    View Restock Recommendations
+  </a>
+</div>
+
+<!-- Notifications -->
+<section class="max-w-7xl mx-auto px-6 py-4 flex gap-4 flex-wrap">
+  {% if low_stock_items %}
+    <div class="bg-red-100 text-red-700 p-4 rounded-lg shadow flex items-center gap-3 relative group cursor-pointer">
+      ⚠️ {{ low_stock_items|length }} item{% if low_stock_items|length > 1 %}s{% endif %} low in stock
+      <div class="absolute hidden group-hover:block bg-white text-gray-800 p-3 rounded shadow-lg top-full mt-2 w-64 z-50">
+        <ul class="list-disc pl-5">
+          {% for s in low_stock_items %}
+            <li>{{ s.symbol }} - {{ s.company }} ({{ s.quantity }} left)</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  {% endif %}
+  {% if festival_info %}
+    <div class="bg-yellow-100 text-yellow-800 p-4 rounded-lg shadow flex items-center gap-3">
+      🎉 {{ festival_info.name }} in {{ festival_info.days_left }} day{% if festival_info.days_left > 1 %}s{% endif %}!
+    </div>
+  {% endif %}
+</section>
+
+<!-- Charts -->
+<section class="max-w-7xl mx-auto px-6 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <div class="bg-white p-6 rounded-xl shadow-lg h-64">
+    <h2 class="text-lg font-semibold mb-4">Sales Over Time (Last 20 Days)</h2>
+    <canvas id="salesOverTimeChart" class="w-full h-full"></canvas>
+  </div>
+  <div class="bg-white p-6 rounded-xl shadow-lg h-64">
+    <h2 class="text-lg font-semibold mb-4">Top Selling Products</h2>
+    <canvas id="topSellingChart" class="w-full h-full"></canvas>
+  </div>
+  <div class="bg-white p-6 rounded-xl shadow-lg h-64">
+    <h2 class="text-lg font-semibold mb-4">Low Stock Items</h2>
+    <canvas id="lowStockChart" class="w-full h-full"></canvas>
+  </div>
+</section>
+
+<!-- Stock Table -->
+<section class="max-w-7xl mx-auto px-6 py-6">
+  <div class="bg-white rounded-xl shadow-lg overflow-x-auto">
+    <table class="w-full border-collapse rounded-xl overflow-hidden shadow-sm">
+      <thead class="bg-gray-200 text-gray-700">
+        <tr>
+          <th class="py-3 px-4 text-left">Symbol</th>
+          <th class="py-3 px-4 text-left">Company</th>
+          <th class="py-3 px-4 text-right">Price</th>
+          <th class="py-3 px-4 text-right">Change</th>
+          <th class="py-3 px-4 text-right">Quantity</th>
+          <th class="py-3 px-4 text-left">Category</th>
+          <th class="py-3 px-4 text-left">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for stock in page_obj %}
+        <tr class="border-b hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 transition">
+          <td class="py-3 px-4 font-medium">{{ stock.symbol }}</td>
+          <td class="py-3 px-4">{{ stock.company }}</td>
+          <td class="py-3 px-4 text-right">₹{{ stock.price }}</td>
+          <td class="py-3 px-4 text-right {% if stock.change >= 0 %}text-green-600{% else %}text-red-600{% endif %}">{{ stock.change }}%</td>
+          <td class="py-3 px-4 text-right">
+            <span class="px-2 py-1 rounded-full text-white {% if stock.quantity < 10 %}bg-red-600{% elif stock.quantity > 100 %}bg-green-600{% else %}bg-blue-600{% endif %}">
+              {{ stock.quantity }}
+            </span>
+          </td>
+          <td class="py-3 px-4">{{ stock.category }}</td>
+          <td class="py-3 px-4 flex gap-1">
+            <a href="{% url 'add_sale' stock.id %}" class="bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700 text-sm transition">Add Sale</a>
+            <a href="{% url 'edit_stock' stock.id %}" class="bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 text-sm transition">Edit</a>
+            <a href="{% url 'delete_stock' stock.id %}" class="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 text-sm transition">Delete</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-center py-4">No stocks found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div class="p-4 flex justify-center gap-2">
+      {% if restock_page_obj.has_previous %}
+        <a href="?restock_page={{ restock_page_obj.previous_page_number }}" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Prev</a>
+      {% endif %}
+      <span class="px-3 py-1 bg-gray-100 rounded">{{ restock_page_obj.number }}</span>
+      {% if restock_page_obj.has_next %}
+        <a href="?restock_page={{ restock_page_obj.next_page_number }}" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Next</a>
+      {% endif %}
+    </div>
+
+    <!-- Main Pagination -->
+    <div class="p-4">
+      <nav class="flex justify-center gap-2">
+        {% if page_obj.has_previous %}
+          <a href="?page={{ page_obj.previous_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if search %}&search={{ search }}{% endif %}" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Prev</a>
+        {% endif %}
+        <span class="px-3 py-1 bg-gray-100 rounded">{{ page_obj.number }}</span>
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if search %}&search={{ search }}{% endif %}" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Next</a>
+        {% endif %}
+      </nav>
+    </div>
+
+  </div>
+</section>
+
+<!-- Charts JS -->
+<script>
+const salesOverTimeChart = new Chart(document.getElementById('salesOverTimeChart'), {
+    type: 'line',
+    data: {
+        labels: {{ sales_dates|safe }},
+        datasets: [{
+            label: 'Revenue (₹)',
+            data: {{ sales_revenue|safe }},
+            borderColor: 'rgb(59, 130, 246)',
+            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+            fill: true,
+            tension: 0.3
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: true } },
+        scales: { y: { beginAtZero: true } }
+    }
+});
+
+const topSellingChart = new Chart(document.getElementById('topSellingChart'), {
+    type: 'bar',
+    data: {
+        labels: {{ top_labels|safe }},
+        datasets: [{
+            label: 'Quantity Sold',
+            data: {{ top_values|safe }},
+            backgroundColor: 'rgb(16, 185, 129)'
+        }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+});
+
+const lowStockChart = new Chart(document.getElementById('lowStockChart'), {
+    type: 'bar',
+    data: {
+        labels: {{ low_labels|safe }},
+        datasets: [{
+            label: 'Quantity',
+            data: {{ low_qty|safe }},
+            backgroundColor: 'rgb(220, 38, 38)'
+        }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+});
+</script>
+
+</body>
+</html>

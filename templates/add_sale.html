@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Sale - {{ stock.symbol }}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 flex items-center justify-center min-h-screen">
+
+<div class="bg-white p-8 rounded-xl shadow-md w-full max-w-lg">
+  <h1 class="text-2xl font-bold mb-6 text-center">Add Sale for {{ stock.symbol }} - {{ stock.company }}</h1>
+
+  {% for message in messages %}
+    <div class="mb-4 text-red-600">{{ message }}</div>
+  {% endfor %}
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <div class="mb-4">
+      {{ form.stock.label_tag }}
+      {{ form.stock }}
+      {{ form.stock.errors }}
+    </div>
+
+    <div class="mb-4">
+      {{ form.date.label_tag }}
+      {{ form.date }}
+      {{ form.date.errors }}
+    </div>
+
+    <div class="mb-4">
+      {{ form.quantity_sold.label_tag }}
+      {{ form.quantity_sold }}
+      {{ form.quantity_sold.errors }}
+    </div>
+
+    <!-- Revenue is automatically calculated, so no input field is needed -->
+
+    <div class="flex gap-2">
+      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        Record Sale
+      </button>
+      <a href="{% url 'home' %}" class="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400">Cancel</a>
+    </div>
+  </form>
+</div>
+
+</body>
+</html>

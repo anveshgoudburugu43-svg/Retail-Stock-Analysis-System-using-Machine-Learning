@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body{
+            background-color: lightgreen;
+            text-align:center; 
+        }
+    </style>
+    <title>BILL CAL</title>
+</head>
+
+<body>
+    <form id="myform">
+        <label for="fname">First Name:</label>
+        <input type="text" id="fname" name="fname"><br><br>
+
+        <label for="phone">Mobile:</label>
+        <input type="text" id="phone" name="phone" maxlength="10"><br><br>
+
+        <label for="gender">Gender:</label>
+        <select id="gender" name="gender">
+            <option value="">--Select--</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+        </select><br><br>
+
+
+        <label for="feedback">FEEDBACK:</label>
+        <textarea="text" id="feedback" name="feedback" rows="4" cols="40" placeholder="enter your feedback"></textarea>
+
+        <button type="submit">Submit</button>
+    </form>
+
+    <script>
+        document.getElementById("myform").addEventListener("submit", function (event) {
+            event.preventDefault(); // Fixed typo
+
+            const fname = document.getElementById("fname").value.trim(); // Fixed function name
+            const phone = document.getElementById("phone").value.trim(); // Fixed function name
+            const gender = document.getElementById("gender").value;
+
+            if (fname === "") {
+                alert("Enter a valid name.");
+                return;
+            }
+
+            const phonePattern = /^[0-9]{10}$/; // Remove quotes; use regex literal
+            if (!phonePattern.test(phone)) {
+                alert("Enter a valid 10-digit phone number.");
+                return;
+            }
+
+            if (gender === "") {
+                alert("Please select a gender.");
+                return;
+            }
+
+            alert("Form submitted successfully\nName: " + fname + "\nPhone: " + phone + "\nGender: " + gender);
+
+            <div id="result"></div>
+            const month=annualrate/12/100;
+
+            const  resultDiv= document.getELementBYId(tresult);
+            resultDiv.innerHTML='<strong> MONTHYLY EMI</strong> ${emi..tofixed(2)}';
+
+        });
+</script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% if edit %}Edit{% else %}Add{% endif %} Stock</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 flex items-center justify-center min-h-screen">
+
+<div class="bg-white p-8 rounded-xl shadow-md w-full max-w-lg">
+  <h1 class="text-2xl font-bold mb-6 text-center">{% if edit %}Edit{% else %}Add{% endif %} Stock</h1>
+
+  {% for message in messages %}
+    <div class="mb-4 text-red-600">{{ message }}</div>
+  {% endfor %}
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <div class="mb-4">
+      {{ form.symbol.label_tag }}
+      {{ form.symbol }}
+      <p class="text-sm text-gray-500">{{ form.symbol.help_text }}</p>
+      {{ form.symbol.errors }}
+    </div>
+
+    <div class="mb-4">
+      {{ form.company.label_tag }}
+      {{ form.company }}
+      <p class="text-sm text-gray-500">{{ form.company.help_text }}</p>
+      {{ form.company.errors }}
+    </div>
+
+    <div class="mb-4">
+      {{ form.price.label_tag }}
+      {{ form.price }}
+      <p class="text-sm text-gray-500">{{ form.price.help_text }}</p>
+      {{ form.price.errors }}
+    </div>
+
+    <div class="mb-4">
+      {{ form.quantity.label_tag }}
+      {{ form.quantity }}
+      <p class="text-sm text-gray-500">{{ form.quantity.help_text }}</p>
+      {{ form.quantity.errors }}
+    </div>
+
+    <div class="mb-4">
+      {{ form.category.label_tag }}
+      {{ form.category }}
+      <p class="text-sm text-gray-500">{{ form.category.help_text }}</p>
+      {{ form.category.errors }}
+    </div>
+
+    <div class="mb-4">
+      {{ form.change.label_tag }}
+      {{ form.change }}
+      <p class="text-sm text-gray-500">{{ form.change.help_text }}</p>
+      {{ form.change.errors }}
+    </div>
+
+    <div class="flex gap-2">
+      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        {% if edit %}Update{% else %}Add{% endif %} Stock
+      </button>
+      <a href="{% url 'home' %}" class="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400">Cancel</a>
+    </div>
+  </form>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Retail Stock Management</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-900">
+
+<!-- Header / Navigation -->
+<header class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg">
+  <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+    <h1 class="text-3xl font-bold">Retail Stock Dashboard</h1>
+    <nav>
+      <ul class="flex gap-4">
+        {% if user.is_authenticated %}
+          <li><a href="{% url 'home' %}" class="hover:underline">Dashboard</a></li>
+          <li>
+            <form action="{% url 'logout' %}" method="post" style="display:inline;">
+              {% csrf_token %}
+              <button type="submit" class="hover:underline">Logout</button>
+            </form>
+          </li>
+        {% else %}
+          <li><a href="{% url 'signin' %}" class="hover:underline">Sign In</a></li>
+          <li><a href="{% url 'signup' %}" class="hover:underline">Sign Up</a></li>
+        {% endif %}
+        <li>
+          <a href="/admin/" class="bg-white text-blue-700 px-4 py-2 rounded-md shadow hover:bg-gray-200">Admin Panel</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<!-- Main content -->
+<main class="max-w-7xl mx-auto px-6 py-6">
+  {% block content %}
+  <!-- Page-specific content will be injected here -->
+  {% endblock %}
+</main>
+
+<footer class="bg-gray-200 text-gray-700 py-4 text-center mt-6 rounded-t-lg">
+  &copy; {{ now|date:"Y" }} Retail Stock Management. All Rights Reserved.
+</footer>
+
+</body>
+</html>
